@@ -217,6 +217,16 @@
       "sourceRoot": "libs/data-access/src",
       "prefix": "nx-apollo-angular-lego",
       "architect": {
+        "generate": {
+          "builder": "@nrwl/workspace:run-commands",
+          "options": {
+            "commands": [
+              {
+                "command": "npx graphql-codegen --config libs/data-access/codegen.yml"
+              }
+            ]
+          }
+        },
         "lint": {
           "builder": "@nrwl/linter:eslint",
           "options": {
