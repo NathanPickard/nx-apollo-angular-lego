@@ -1,15 +1,45 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AddSetGQL, SetListDocument, SetListQuery } from '@nx-apollo-angular-lego/data-access';
 
 @Component({
   selector: 'nx-apollo-angular-lego-set-form',
   templateUrl: './set-form.component.html',
   styleUrls: ['./set-form.component.css']
 })
-export class SetFormComponent implements OnInit {
+export class SetFormComponent {
+  newSetForm: FormGroup;
 
-  constructor() { }
+  constructor(private addSetGQL: AddSetGQL, private fb: FormBuilder) {
 
-  ngOnInit(): void {
+    this.newSetForm = this.fb.group(
+      {
+        name: ['', Validators.required],
+        year: ['', Validators.required],
+        numParts: [100, Validators.required]
+      }
+    )
+  }
+
+  createSet() {
+    if (this.newSetForm.valid) {
+      const newSet = { 
+      name: this.newSetForm.get('name').value,
+      year: this.newSetForm.get('year').value,
+      numParts: +this.newSetForm.get('numParts').value
+      };
+
+      this.addSetGQL.mutate(newSet, {
+        update: (store, result) => {
+          const data: SetListQuery = store.readQuery({ query: SetListDocument });
+          data.allSets = [...data.allSets, result.data.addSet];
+          // Write data back to the cache
+          store.writeQuery({ query: SetListDocument, data });
+        }
+      }).subscribe(() => {
+        this.newSetForm.reset();
+      });
+    }
   }
 
 }
